@@ -1,0 +1,37 @@
+##############################################################################
+# Copy this file to spotifyripper.conf and edit it to change the options 
+# described below. This file is optional.
+##############################################################################
+# Options
+##############################################################################
+# Choose "aac" or "ogg"
+# Default: "aac"
+#recordformat="aac"
+
+# Only for AAC formats. Ignored if recordformat=ogg
+# Any value supported by fdkaac. See the corresponding man page
+# values
+# Default: "29"
+#aac_profile="29"
+
+# Any value supported by fdkaac or oggenc. See the corresponding man page
+# Recommended for he-aac v1 (profile 5): "64"
+# Recommended for he-aac v2 (profile 29): "48"
+# Recommended for ogg: "128"
+# Default: "48"
+#bitrate="48"
+
+# One of: "normal", "strict" or "strict-lc-nodir"
+# Default: "normal"
+#filenamescheme="normal"
+
+# Name used for creating the null output in pulseaudio.
+# Default: "spotifyrecording"
+#nulloutput_name="spotifyrecording"
+
+# DEBUG
+# Default: "no"
+#debug="yes"
+##############################################################################
+# End of Options
+##############################################################################
