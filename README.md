@@ -18,15 +18,16 @@ chmod +x spotifyripper.sh
 6. Optinal: Install any missing dependencies. For exemple in debian/ubuntu ```apt install fdkaac vorbis-tools``` and repeat the step 5
 
 **Recommended steps:**
-1. Is better if you use a virtual machine or a dedicated computer to let Spotify run while you record. Some DE tend to switch to the null audio output al all applications
-2. Disable the sound of the notifications on your DE
-3. Do not use any application that could use sound while recording
-4. Create a "bin" directory in your home directory and copy the script there to be able to execute the script in any path.
+1. Use a Spotify Premium account. I have made all the testing with a premium account.
+2. Is better if you use a virtual machine or a dedicated computer to let Spotify run while you record. Some DE tend to switch to the null audio output al all applications
+3. Disable the sound of the notifications on your DE
+4. Do not use any application that could use sound while recording
+5. Create a "bin" directory in your home directory and copy the script there to be able to execute the script in any path.
 ```bash
 mkdir ~/bin
 cp spotifyripper.sh ~/bin
 ```
-5. To record first go to the destination directory and then execute the script
+6. To record first go to the destination directory and then execute the script
 ```bash
 cd Music
 spotifyripper.sh
@@ -35,7 +36,7 @@ spotifyripper.sh
 All are optional. 
 You can give as first argument the destination directory. It defaults to the same directory that the script is called.
 Copy the file spotifyripper.conf.example to spotifyripper.conf and keep it in the same directory as the script.
-```bash
+```bash	
 cp spotifyripper.conf.example spotifyripper.conf
 ```
 
