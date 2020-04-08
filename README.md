@@ -12,20 +12,21 @@ A bash script to record music from Spotify to **acc** or **ogg** files
 ```bash
 chmod +x spotifyripper.sh
 ```
-3. Disable the autoplay feature in Spotify. That is nessesary for the script to know when to stop recording
+3. Disable the autoplay feature in the Spotify client. That is nessesary for the script to know when to stop recording
 4. Play anything in spotify to create the pulseaudio sink for the first time
-5. Execute the script
-6. Install any missing dependencies, run the script again if necessary
+5. Execute the script ```./spotifyripper.sh```
+6. Optinal: Install any missing dependencies. For exemple in debian/ubuntu ```apt install fdkaac vorbis-tools``` and repeat the step 5
 
 **Recommended steps:**
-1. Is better if you use a virtual machine or a desdicated computer to let Spotify run while you record. Some DE tend to switch to the null audio output al all applications.
+1. Is better if you use a virtual machine or a dedicated computer to let Spotify run while you record. Some DE tend to switch to the null audio output al all applications
 2. Disable the sound of the notifications on your DE
-3. Create a "bin" directory in your home directory and copy the script there to be able to execute the script in any path.
+3. Do not use any application that could use sound while recording
+4. Create a "bin" directory in your home directory and copy the script there to be able to execute the script in any path.
 ```bash
 mkdir ~/bin
 cp spotifyripper.sh ~/bin
 ```
-4. To record first go to the destination directory and then execute the script
+5. To record first go to the destination directory and then execute the script
 ```bash
 cd Music
 spotifyripper.sh
