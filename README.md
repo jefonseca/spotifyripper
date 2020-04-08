@@ -36,7 +36,6 @@ All are optional.
 You can give as first argument the destination directory. It defaults to the same directory that the script is called.
 Copy the file spotifyripper.conf.example to spotifyripper.conf and keep it in the same directory as the script.
 ```bash
-mkdir ~/bin
 cp spotifyripper.conf.example spotifyripper.conf
 ```
 
