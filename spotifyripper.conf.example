@@ -26,8 +26,8 @@
 #filenamescheme="normal"
 
 # Name used for creating the null output in pulseaudio.
-# Default: "spotifyrecording"
-#nulloutput_name="spotifyrecording"
+# Default: "spotifyripper"
+#nulloutput_name="spotifyripper"
 
 # DEBUG
 # Default: "no"
