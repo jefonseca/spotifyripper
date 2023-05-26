@@ -15,7 +15,7 @@ chmod +x spotifyripper.sh
 3. Disable the autoplay feature in the Spotify client. That is nessesary for the script to know when to stop recording
 4. Play anything in spotify to create the pulseaudio sink for the first time
 5. Execute the script ```./spotifyripper.sh```
-6. Optinal: Install any missing dependencies. For exemple in debian/ubuntu ```apt install fdkaac vorbis-tools``` and repeat the step 5
+6. Optinal: Install any missing dependencies. For exemple in debian/ubuntu ```sudo apt install fdkaac vorbis-tools``` and repeat the step 5
 
 **Recommended steps:**
 1. Use a Spotify Premium account. I have made all the testing with a premium account.
