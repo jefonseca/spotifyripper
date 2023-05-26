@@ -333,14 +333,7 @@ get_dbusmessages () {
 
             if [[ $dbus_value == "playbackstatus" ]]; then
                 local playbackstatus="$(dbus_parse "string" "PlaybackStatus" "$string")"
-                echo "playbackstatus -> $playbackstatus"
-                if [[ $playbackstatus == "Playing" ]]; then
-                    unset dbus_value && unset playbackstatus
-                else
-                    unset dbus_value && unset playbackstatus
-                    msg "Not in "Playing" status, exiting..."
-                    #exit 0
-                fi
+                echo "playbackstatus -> $playbackstatus" && unset dbus_value && unset playbackstatus
             else 
                 case $dbus_value in
                     trackid)
@@ -377,8 +370,8 @@ get_dbusmessages () {
                         local title="$(dbus_parse "string" "xesam:title" "$string")" && echo "title -> $title"
                         unset dbus_value && unset title
                         ;;
-                    tracknumber)
-                        local tracknumber="$(dbus_parse "int32" "xesam:trackNumber" "$string")" && echo "tracknumber -> $tracknumber"
+                	tracknumber)
+                    	local tracknumber="$(dbus_parse "int32" "xesam:trackNumber" "$string")" && echo "tracknumber -> $tracknumber"
                         unset dbus_value && unset tracknumber
                         ;;
                     *)  case $string in
@@ -423,69 +416,82 @@ create_null_audio_output "$nulloutput_name"
 move_spotify_output "$spotify_sink_index" "$nulloutput_name"
 
 # Kill the proces when the script ends. Remove the created sink
-trap 'echo "" ; debug "Killing all and unloading the null audio sink" ; killall fdkaac 2>/dev/null ; killall oggenc 2>/dev/null ; killall parec 2>/dev/null ; pactl unload-module module-null-sink 2>/dev/null' EXIT
+trap 'echo "" ; msg "Killing all and unloading the null audio sink" ; killall fdkaac 2>/dev/null ; killall oggenc 2>/dev/null ; killall parec 2>/dev/null ; pactl unload-module module-null-sink 2>/dev/null' EXIT
 
 # Start reading the activity of spotify
-while read dbusmessage; do
+while read dbus_read; do
 	# Read the start flag
-	if [[ $dbusmessage == "_DBUS_MESSAGE_START_" ]]; then
-		fieldnum=1
-
-	# Read the spotify messages in sequence
-	elif [[ -n $dbusmessage ]]; then
-		case $fieldnum in
-			1)	trackid="$dbusmessage" ; ((fieldnum++)) ;;
-			2)	artUrl="$dbusmessage" ; ((fieldnum++)) ;;
-			3)	album="$dbusmessage" ; ((fieldnum++)) ;;
-			4)	albumArtist="$dbusmessage" ; ((fieldnum++)) ;;
-			5)	artist="$dbusmessage" ; ((fieldnum++)) ;;
-			6)	title="$dbusmessage" ; ((fieldnum++)) ;;
-			7)	trackNumber="$dbusmessage" ; ((fieldnum++)) ;;
-			8)	PlaybackStatus="$dbusmessage" ; fieldnum="last" ;;
-			9)	msg "FATAL: Unknown dbus field. Exiting..." ; exit 1 ;;
-		esac
-		
-		# Skip when the dbus message is repeated in the same song
-		if [[ "$ctrackid" == "$trackid" ]] && [[ "$fieldnum" == "last" ]] && [[ "$PlaybackStatus" == "Playing" ]]; then
-			continue
-		
-		# Detect the pause status. Leave a message and exit the script
-		elif [[ "$fieldnum" == "last" ]] && [[ "$PlaybackStatus" == "Paused" ]]; then
-			echo "********************************************"
-		 	echo "Pause status during recording!"
-			echo "It could have finished the recording"
-		 	echo "********************************************"
-		 	echo "Exiting script"
-		 	echo "********************************************"
-		 	exit 0
-		
-		# All previous things, was for this part
-		elif [[ "$fieldnum" == "last" ]] && [[ "$PlaybackStatus" == "Playing" ]]; then
-			ctrackid=$trackid
-			if [[ $recordformat == "aac" ]]; then
-				killall fdkaac 2>/dev/null ; killall parec 2>/dev/null
-				echo "RECORDING: \"$title\" by \"$artist\" in $recordformat"
-				outputfile=$(file_path_structure "$filenamescheme" "$recordingdir" "$artist" "$album" "$title" "m4a")
-
-				#parec -d "$nulloutput_name".monitor | fdkaac -R -S -p "$aac_profile" --bitrate "$bitrate"k --moov-before-mdat --afterburner 1 \
-				--title "$title" --artist "$artist" --album "$album" --album-artist "$albumArtist" --track "$trackNumber" \
-				-o "$outputfile" - 2>/dev/null & disown
-
-			elif [[ $recordformat == "ogg" ]]; then
-				killall oggenc 2>/dev/null ; killall parec 2>/dev/null
-				echo "RECORDING: \"$title\" by \"$artist\" in format $recordformat"
-				outputfile=$(file_path_structure "$filenamescheme" "$recordingdir" "$artist" "$album" "$title" "oga")
-
-				#parec -d "$nulloutput_name".monitor | oggenc -b "$bitrate" --raw \
-				--title "$title" --artist "$artist" --album "$album" --tracknum "$trackNumber" \
-				-o "$outputfile" - 2>/dev/null & disown
-
-			else
-				debug "No configured format. Please set the \$recordformat variable" ; exit 1
-			fi
+	if [[ $dbus_read == "___dbus_read_start___" ]]; then
+		debug "recieve a start message"
+		dbus_messages_start=true
+		continue
+	elif [[ $dbus_read == "___dbus_read_stop___" ]]; then
+		debug "recieve a stop message"
+		if [[ $media_record ]]; then
+			msg "************* Metadata *************"
+			msg "Title: $title"
+			msg "Artist: $artist"
+			msg "Album: $album"
+			msg "Album artist: $albumartist"
+			msg "Track number: $tracknumber"
+			msg "Disc number: $discnumber"
+			msg "************* Metadata *************"
+			case $recordformat in
+				aac)
+					killall fdkaac 2>/dev/null ; killall parec 2>/dev/null
+					outputfile=$(file_path_structure "$filenamescheme" "$recordingdir" "$artist" "$album" "$title" "m4a")
+					msg "RECORDING: \"$title\" by \"$artist\" in $recordformat"
+					msg "RECORDING TO: $outputfile"
+					parec -d "$nulloutput_name".monitor | fdkaac -R -S -p "$aac_profile" --bitrate "$bitrate"k --moov-before-mdat --afterburner 1 \
+					--title "$title" --artist "$artist" --album "$album" --album-artist "$albumartist" --track "$tracknumber" --disk "$discnumber" \
+					- -o "$outputfile" 2>/dev/null & disown
+				;;
+				ogg)
+					killall oggenc 2>/dev/null ; killall parec 2>/dev/null
+					outputfile=$(file_path_structure "$filenamescheme" "$recordingdir" "$artist" "$album" "$title" "oga")
+					msg "RECORDING: \"$title\" by \"$artist\" in format $recordformat"
+					msg "RECORDING TO: $outputfile"
+					parec -d "$nulloutput_name".monitor | oggenc -b "$bitrate" --raw \
+					--title "$title" --artist "$artist" --album "$album" --tracknum "$tracknumber" \
+					- -o "$outputfile" 2>/dev/null & disown
+				;;
+				*)
+					debug "No configured format. Please set the \$recordformat variable" ; exit 1
+				;;
+			esac
 		fi
-	else
-		debug "Empty dbus message. This should not happen ¯\_(ツ)_/¯" ; exit 1
-		exit 1
+		unset dbus_messages_start && unset media_record
+		continue
+	elif [[ $dbus_read == *'playbackstatus -> '* ]]; then
+		playbackstatus="${dbus_read#playbackstatus -> }"
+		if [[ $playbackstatus != "Playing" ]]; then
+			debug "playback status is not Playing. exiting..."
+			msg "Change on playback status. Stoping everithing... ¯\_(ツ)_/¯"
+			exit 0
+		fi
+		continue
+	elif [[ $dbus_messages_start ]]; then
+		debug "setting media metadata"
+		media_record=true
+		case $dbus_read in
+			'title -> '*)
+				title="${dbus_read#title -> }"
+				continue ;;
+			'artist -> '*)
+				artist="${dbus_read#artist -> }"
+				continue ;;
+			'album -> '*)
+				album="${dbus_read#album -> }"
+				continue ;;
+			'albumartist -> '*)
+				albumartist="${dbus_read#albumartist -> }"
+				continue ;;
+			'tracknumber -> '*)
+				tracknumber="${dbus_read#tracknumber -> }"
+				continue ;;
+			'discnumber -> '*)
+				discnumber="${dbus_read#discnumber -> }"
+				continue ;;
+		esac
 	fi
 done < <(get_dbusmessages "path=/org/mpris/MediaPlayer2,member=PropertiesChanged")
